@@ -32,17 +32,17 @@ def ConvNet_nocrop(data_list):
         T  = tf.placeholder(tf.bool)
         LR = tf.placeholder(tf.float32)
 
-        H = tf.layers.conv2d(X, filters=30, kernel_size=(1,25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
+        H = tf.layers.conv2d(X, filters=40, kernel_size=(1,25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
-        # dim N * 25 * 976 * 30
+        # dim N * 25 * 976 * 40
 
-        H = tf.layers.conv2d(H,filters=30, kernel_size=(25,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
+        H = tf.layers.conv2d(H,filters=40, kernel_size=(25,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
-        # dim N * 1 * 976 *30
+        # dim N * 1 * 976 *40
 
         H = tf.square(H)
         H = tf.layers.average_pooling2d(H , pool_size=(1,75) , strides=(1,15), padding='valid')
-        # dim N * 1 * 61 * 30
+        # dim N * 1 * 61 * 40
         
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.5, training=T)
@@ -64,7 +64,7 @@ def ConvNet_nocrop(data_list):
         
         
         ### training model ###
-        batch_size = train_len / 10
+        batch_size = train_len / 20
         lr=0.005
 
         loss_hist   = []
@@ -75,14 +75,19 @@ def ConvNet_nocrop(data_list):
         with tf.Session(graph=gf) as se:
             se.run(init2)
             for epoch in range(60):
-                if epoch >10:
+                if epoch > 10:
                     lr *= 0.975
                 id_list = get_batch_id(batch_size, train_len)
                 for batch_id in id_list:
                     batch_x = x_train[batch_id]
-                    batch_y = y_train[batch_id]    
+                    batch_y = y_train[batch_id]
+
+                    print(batch_x.shape)
+                    print(batch_y.shape) 
                     
                     _ , loss_i =  se.run([Train_step,Loss] , feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
+
+                    print(loss_i)
 
                 loss_test = se.run(Loss,feed_dict={X: x_test ,Y:y_test , T:False })
 
