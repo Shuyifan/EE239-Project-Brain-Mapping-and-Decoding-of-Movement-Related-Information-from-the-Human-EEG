@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from scipy import stats
 
 def get_batch_id(batchsize,datalen):
+    batchsize = int(batchsize)
     id_all = np.arange(datalen)
     np.random.shuffle(id_all)   
     id_list = []    
@@ -13,7 +14,7 @@ def get_batch_id(batchsize,datalen):
     if datalen % batchsize !=0:
         i+=1
         id_batch = id_all[int(i*batchsize):]
-        id_list.append(id_batch)        
+        id_list.append(id_batch)
     return id_list
 
 def ConvNet_nocrop(data_list):
@@ -45,7 +46,7 @@ def ConvNet_nocrop(data_list):
         # dim N * 1 * 61 * 40
         
         H = tf.log(H)
-        H = tf.layers.dropout(H, rate=0.5, training=T)
+        H = tf.layers.dropout(H, rate=0.6, training=T)
 
         H = tf.layers.conv2d(H, filters=4, kernel_size=(1,61), padding='valid', activation=None , kernel_initializer=initK)   
         # dim (N)*1*1*4
@@ -54,7 +55,8 @@ def ConvNet_nocrop(data_list):
         # dim (N)*4
 
         Y_pred = tf.nn.softmax(Y_pred, name='Y_pred')  # w w/o result simular
-        Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=Y_pred, labels=Y))
+        #Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=Y_pred, labels=Y))
+        Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_pred, labels=Y))
         Update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
         with tf.control_dependencies(Update_ops):
@@ -75,8 +77,6 @@ def ConvNet_nocrop(data_list):
         with tf.Session(graph=gf) as se:
             se.run(init2)
             for epoch in range(60):
-                if epoch > 10:
-                    lr *= 0.975
                 id_list = get_batch_id(batch_size, train_len)
                 for batch_id in id_list:
                     batch_x = x_train[batch_id]
@@ -89,7 +89,7 @@ def ConvNet_nocrop(data_list):
 
                     print(loss_i)
 
-                loss_test = se.run(Loss,feed_dict={X: x_test ,Y:y_test , T:False })
+                loss_test = se.run(Loss,feed_dict={X: x_test , Y: y_test , T: False})
 
                 y_test_pred      = se.run(Y_pred, feed_dict={X: x_test, T: False})
                 Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(y_test,1))
@@ -97,16 +97,25 @@ def ConvNet_nocrop(data_list):
                 acc_tf_test      = tf.reduce_mean(Y_correct_test)             
                 acc_test2        = se.run(acc_tf_test)   
 
+                train_loss = 0.0
+                train_acc = 0.0
 
-                Y_train_pred     = se.run(Y_pred, feed_dict={X: batch_x, Y: batch_y, T: False})
-                Y_correct_train  = tf.equal(tf.argmax(Y_train_pred,1), tf.argmax(batch_y,1))
-                Y_correct_train  = tf.cast(Y_correct_train, tf.float32)
-                acc_tf_train     = tf.reduce_mean(Y_correct_train)             
-                acc_train        = se.run(acc_tf_train)   
+                for batch_id in id_list:
+                    batch_x = x_train[batch_id]
+                    batch_y = y_train[batch_id]
 
-                loss_hist.append(loss_i)
+                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x , Y: batch_y , T: False})
+                    Y_train_pred     = se.run(Y_pred, feed_dict={X: batch_x, Y: batch_y, T: False})
+                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred,1), tf.argmax(batch_y,1))
+                    Y_correct_train  = tf.cast(Y_correct_train, tf.float32)
+                    acc_tf_train     = tf.reduce_mean(Y_correct_train)             
+                    acc_train        = se.run(acc_tf_train)
+                    train_loss = train_loss + loss_batch_train * batch_x.shape[0] / x_train.shape[0]
+                    train_acc = train_acc + acc_train * batch_x.shape[0] / x_train.shape[0]
+
+                loss_hist.append(train_loss)
                 loss_hist2.append(loss_test)
-                train_hist.append(acc_train)
+                train_hist.append(train_acc)
                 test_hist2.append(acc_test2)
 
                 print('Epoch:', epoch, '| test: %.4f' % acc_test2, '| train: %.4f' % acc_train,
