@@ -27,17 +27,17 @@ def ConvNet_nocrop(data_list):
     with gf.as_default():
         initK = tf.contrib.layers.xavier_initializer()
         #Placeholders
-        # dim N * 25 * 1000 * 1
-        X  = tf.placeholder(dtype=tf.float32, shape=(None, 25, 1000, 1), name='X')
+        # dim N * 22 * 1000 * 1
+        X  = tf.placeholder(dtype=tf.float32, shape=(None, 22, 1000, 1), name='X')
         Y  = tf.placeholder(dtype=tf.float32, shape=None, name='Y')
         T  = tf.placeholder(tf.bool)
         LR = tf.placeholder(tf.float32)
 
         H = tf.layers.conv2d(X, filters=40, kernel_size=(1,25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
-        # dim N * 25 * 976 * 40
+        # dim N * 22 * 976 * 40
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(25,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
+        H = tf.layers.conv2d(H,filters=40, kernel_size=(22,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 1 * 976 *40
 
