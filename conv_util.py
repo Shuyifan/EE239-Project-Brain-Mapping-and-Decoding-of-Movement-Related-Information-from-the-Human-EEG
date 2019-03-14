@@ -49,13 +49,13 @@ def ConvNet_nocrop(data_list):
         # dim N * 1 * 140 * 40      
 
         H = tf.square(H)
-        H = tf.layers.max_pooling2d(H , pool_size=(1,3) , strides=(1,3), padding='valid')
-        # dim N * 1 * 47 * 40
+        H = tf.layers.max_pooling2d(H , pool_size=(1,5) , strides=(1,5), padding='valid')
+        # dim N * 1 * 28 * 40
 
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.6, training=T)
 
-        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,46), padding='valid', activation=None , kernel_initializer=initK)   
+        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,28), padding='valid', activation=None , kernel_initializer=initK)   
         # dim (N)*1*1*4
 
         Y_pred = tf.reshape(H,[-1,4], name='Y_pred')
@@ -73,8 +73,8 @@ def ConvNet_nocrop(data_list):
         
         
         ### training model ###
-        batch_size = train_len / 20
-        lr=0.001
+        batch_size = train_len / 10
+        lr=0.005
 
         loss_hist   = []
         loss_hist2  = []
@@ -84,6 +84,8 @@ def ConvNet_nocrop(data_list):
         with tf.Session(graph=gf) as se:
             se.run(init2)
             for epoch in range(60):
+                if epoch > 40:
+                    lr *= 0.975
                 id_list = get_batch_id(batch_size, train_len)
                 for batch_id in id_list:
                     batch_x = x_train[batch_id]
@@ -125,8 +127,8 @@ def ConvNet_nocrop(data_list):
                 train_hist.append(train_acc)
                 test_hist2.append(acc_test2)
 
-                print('Epoch:', epoch, '| test: %.4f' % acc_test2, '| train: %.4f' % acc_train,
-                      '| train Loss: %.4f' % loss_i, '| test Loss: %.4f' % loss_test)
+                print('Epoch:', epoch, '| test: %.4f' % acc_test2, '| train: %.4f' % train_acc,
+                      '| train Loss: %.4f' % train_loss, '| test Loss: %.4f' % loss_test)
 
         plt.figure()
         plt.plot(train_hist,color='red',label='train')
