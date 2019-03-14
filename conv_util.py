@@ -37,18 +37,25 @@ def ConvNet_nocrop(data_list):
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 22 * 976 * 40
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(22,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
+        H = tf.layers.conv2d(H,filters=40, kernel_size=(22,1), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
-        # dim N * 1 * 976 *40
+        # dim N * 1 * 976 * 40
+
+        H = tf.layers.max_pooling2d(H , pool_size=(1,6) , strides=(1,6), padding='valid')
+        # dim N * 1 * 162 * 40      
+
+        H = tf.layers.conv2d(H,filters=40, kernel_size=(1,23), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
+        H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
+        # dim N * 1 * 140 * 40      
 
         H = tf.square(H)
-        H = tf.layers.average_pooling2d(H , pool_size=(1,75) , strides=(1,15), padding='valid')
-        # dim N * 1 * 61 * 40
-        
+        H = tf.layers.max_pooling2d(H , pool_size=(1,3) , strides=(1,3), padding='valid')
+        # dim N * 1 * 47 * 40
+
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.6, training=T)
 
-        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,61), padding='valid', activation=None , kernel_initializer=initK)   
+        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,46), padding='valid', activation=None , kernel_initializer=initK)   
         # dim (N)*1*1*4
 
         Y_pred = tf.reshape(H,[-1,4], name='Y_pred')
@@ -67,7 +74,7 @@ def ConvNet_nocrop(data_list):
         
         ### training model ###
         batch_size = train_len / 20
-        lr=0.005
+        lr=0.001
 
         loss_hist   = []
         loss_hist2  = []
