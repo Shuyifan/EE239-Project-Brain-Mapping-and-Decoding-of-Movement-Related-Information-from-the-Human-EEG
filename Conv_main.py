@@ -4,4 +4,4 @@ from load import load_data_no_EOG
 
 #data = load_data()
 data = load_data_no_EOG()
-conv_util.ConvNet_nocrop(data)
+conv_util.deep_net(data)

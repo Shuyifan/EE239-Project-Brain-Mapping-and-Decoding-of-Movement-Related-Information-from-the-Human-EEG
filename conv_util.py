@@ -17,7 +17,7 @@ def get_batch_id(batchsize,datalen):
         id_list.append(id_batch)
     return id_list
 
-def ConvNet_nocrop(data_list):
+def deep_net(data_list):
 
     [train_len, test_len ,x_train, y_train, x_test , y_test] = data_list
     
@@ -83,7 +83,7 @@ def ConvNet_nocrop(data_list):
 
         with tf.Session(graph=gf) as se:
             se.run(init2)
-            for epoch in range(60):
+            for epoch in range(200):
                 if epoch > 40:
                     lr *= 0.975
                 id_list = get_batch_id(batch_size, train_len)
