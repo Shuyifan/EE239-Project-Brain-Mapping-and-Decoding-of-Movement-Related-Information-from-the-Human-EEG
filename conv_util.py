@@ -63,7 +63,7 @@ def shallow_net(data_list):
         init2 = tf.global_variables_initializer()
         
         ### training model ###
-        batch_size = train_len / 10
+        batch_size = train_len / 1
         lr = 0.005
 
         loss_hist   = []
