@@ -8,18 +8,18 @@ def get_batch_id(batchsize,datalen):
     id_all = np.arange(datalen)
     np.random.shuffle(id_all)   
     id_list = []    
-    for i in range(int(datalen/batchsize)):
-        id_batch = id_all[int(i*batchsize):int(i*batchsize)+batchsize]
+    for i in range(int(datalen / batchsize)):
+        id_batch = id_all[int(i * batchsize) : int(i * batchsize) + batchsize]
         id_list.append(id_batch)
-    if datalen % batchsize !=0:
-        i+=1
-        id_batch = id_all[int(i*batchsize):]
+    if datalen % batchsize != 0:
+        i += 1
+        id_batch = id_all[int(i * batchsize):]
         id_list.append(id_batch)
     return id_list
 
 def shallow_net(data_list):
 
-    [train_len, test_len ,x_train, y_train, x_test , y_test] = data_list
+    [train_len, test_len, x_train, y_train, x_test, y_test] = data_list
     
     #Define graph
     gf = tf.Graph()
@@ -33,28 +33,27 @@ def shallow_net(data_list):
         T  = tf.placeholder(tf.bool)
         LR = tf.placeholder(tf.float32)
 
-        H = tf.layers.conv2d(X, filters=40, kernel_size=(1,40), strides=(1, 2), padding='valid', activation=None , kernel_initializer=initK)
+        H = tf.layers.conv2d(X, filters=40, kernel_size=(1, 40), strides=(1, 2), padding='valid', activation=None , kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 22 * 481 * 40
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(22,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
+        H = tf.layers.conv2d(H, filters=40, kernel_size=(22, 1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 1 * 381 *40
 
         H = tf.square(H)
-        H = tf.layers.average_pooling2d(H , pool_size=(1,75) , strides=(1,15), padding='valid')
+        H = tf.layers.average_pooling2d(H, pool_size=(1, 75) , strides=(1, 15), padding='valid')
         # dim N * 1 * 28 * 40
         
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.3, training=T)
 
-        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,28), padding='valid', activation=None , kernel_initializer=initK)   
+        H = tf.layers.conv2d(H, filters=4, kernel_size=(1, 28), padding='valid', activation=None , kernel_initializer=initK)   
         # dim (N)*1*1*4
 
-        Y_pred = tf.reshape(H,[-1,4], name='Y_pred')
+        Y_pred = tf.reshape(H,[-1, 4], name='Y_pred')
         # dim (N)*4
 
-        #Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=Y_pred, labels=Y))
         Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_pred, labels=Y))
         Update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
@@ -63,10 +62,9 @@ def shallow_net(data_list):
 
         init2 = tf.global_variables_initializer()
         
-        
         ### training model ###
         batch_size = train_len / 10
-        lr=0.005
+        lr = 0.005
 
         loss_hist   = []
         loss_hist2  = []
@@ -83,9 +81,9 @@ def shallow_net(data_list):
                     batch_x = x_train[batch_id]
                     batch_y = y_train[batch_id]
                     
-                    _ , loss_i =  se.run([Train_step,Loss] , feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
+                    _ , loss_i =  se.run([Train_step,Loss], feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
 
-                loss_test = se.run(Loss,feed_dict={X: x_test , Y: y_test , T: False})
+                loss_test = se.run(Loss,feed_dict={X: x_test, Y: y_test, T: False})
 
                 y_test_pred      = se.run(Y_pred, feed_dict={X: x_test, T: False})
                 Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(y_test,1))
@@ -100,9 +98,9 @@ def shallow_net(data_list):
                     batch_x = x_train[batch_id]
                     batch_y = y_train[batch_id]
 
-                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x , Y: batch_y , T: False})
+                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x, Y: batch_y, T: False})
                     Y_train_pred     = se.run(Y_pred, feed_dict={X: batch_x, Y: batch_y, T: False})
-                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred,1), tf.argmax(batch_y,1))
+                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred, 1), tf.argmax(batch_y, 1))
                     Y_correct_train  = tf.cast(Y_correct_train, tf.float32)
                     acc_tf_train     = tf.reduce_mean(Y_correct_train)             
                     acc_train        = se.run(acc_tf_train)
@@ -118,23 +116,23 @@ def shallow_net(data_list):
                       '| train Loss: %.4f' % train_loss, '| test Loss: %.4f' % loss_test)
 
         plt.figure()
-        plt.plot(train_hist,color='red',label='train')
-        plt.plot(test_hist2,color='green',label='test')
+        plt.plot(train_hist, color='red', label='train')
+        plt.plot(test_hist2, color='green', label='test')
         
         plt.ylabel('Test_acc , Train_acc')
         plt.legend()
         plt.show()
 
         plt.figure()
-        plt.plot(loss_hist, color='red',label='train loss')
-        plt.plot(loss_hist2,color='green',label='test  loss')
+        plt.plot(loss_hist, color='red', label='train loss')
+        plt.plot(loss_hist2, color='green', label='test  loss')
         plt.ylabel('Loss')
         plt.legend()
         plt.show()
 
 def deep_net(data_list):
 
-    [train_len, test_len ,x_train, y_train, x_test , y_test] = data_list
+    [train_len, test_len, x_train, y_train, x_test, y_test] = data_list
     
     #Define graph
     gf = tf.Graph()
@@ -148,36 +146,35 @@ def deep_net(data_list):
         T  = tf.placeholder(tf.bool)
         LR = tf.placeholder(tf.float32)
 
-        H = tf.layers.conv2d(X, filters=40, kernel_size=(1,25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
+        H = tf.layers.conv2d(X, filters=40, kernel_size=(1, 25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 22 * 976 * 40
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(22,1), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
+        H = tf.layers.conv2d(H, filters=40, kernel_size=(22, 1), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 1 * 976 * 40
 
-        H = tf.layers.max_pooling2d(H , pool_size=(1,6) , strides=(1,6), padding='valid')
+        H = tf.layers.max_pooling2d(H, pool_size=(1, 6) , strides=(1, 6), padding='valid')
         # dim N * 1 * 162 * 40      
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(1,23), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
+        H = tf.layers.conv2d(H,filters=40, kernel_size=(1, 23), strides=(1, 1), padding='valid', activation=tf.nn.relu, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 1 * 140 * 40      
 
         H = tf.square(H)
-        H = tf.layers.max_pooling2d(H , pool_size=(1,5) , strides=(1,5), padding='valid')
+        H = tf.layers.max_pooling2d(H, pool_size=(1, 5) , strides=(1, 5), padding='valid')
         # dim N * 1 * 28 * 40
 
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.6, training=T)
 
-        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,28), padding='valid', activation=None , kernel_initializer=initK)   
+        H = tf.layers.conv2d(H, filters=4, kernel_size=(1, 28), padding='valid', activation=None, kernel_initializer=initK)   
         # dim (N)*1*1*4
 
-        Y_pred = tf.reshape(H,[-1,4], name='Y_pred')
+        Y_pred = tf.reshape(H,[-1, 4], name='Y_pred')
         # dim (N)*4
 
         Y_pred = tf.nn.softmax(Y_pred, name='Y_pred')  # w w/o result simular
-        #Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=Y_pred, labels=Y))
         Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_pred, labels=Y))
         Update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
@@ -185,7 +182,6 @@ def deep_net(data_list):
             Train_step = tf.train.AdamOptimizer(LR).minimize(Loss)
 
         init2 = tf.global_variables_initializer()
-        
         
         ### training model ###
         batch_size = train_len / 10
@@ -209,17 +205,17 @@ def deep_net(data_list):
                     print(batch_x.shape)
                     print(batch_y.shape) 
                     
-                    _ , loss_i =  se.run([Train_step,Loss] , feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
+                    _ , loss_i =  se.run([Train_step,Loss], feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
 
                     print(loss_i)
 
                 loss_test = se.run(Loss,feed_dict={X: x_test , Y: y_test , T: False})
 
                 y_test_pred      = se.run(Y_pred, feed_dict={X: x_test, T: False})
-                Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(y_test,1))
+                Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(y_test, 1))
                 Y_correct_test   = tf.cast(Y_correct_test, tf.float32)
                 acc_tf_test      = tf.reduce_mean(Y_correct_test)             
-                acc_test2        = se.run(acc_tf_test)   
+                acc_test2        = se.run(acc_tf_test)
 
                 train_loss = 0.0
                 train_acc = 0.0
@@ -228,9 +224,9 @@ def deep_net(data_list):
                     batch_x = x_train[batch_id]
                     batch_y = y_train[batch_id]
 
-                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x , Y: batch_y , T: False})
+                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x, Y: batch_y, T: False})
                     Y_train_pred     = se.run(Y_pred, feed_dict={X: batch_x, Y: batch_y, T: False})
-                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred,1), tf.argmax(batch_y,1))
+                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred, 1), tf.argmax(batch_y, 1))
                     Y_correct_train  = tf.cast(Y_correct_train, tf.float32)
                     acc_tf_train     = tf.reduce_mean(Y_correct_train)             
                     acc_train        = se.run(acc_tf_train)
@@ -246,23 +242,23 @@ def deep_net(data_list):
                       '| train Loss: %.4f' % train_loss, '| test Loss: %.4f' % loss_test)
 
         plt.figure()
-        plt.plot(train_hist,color='red',label='train')
-        plt.plot(test_hist2,color='green',label='test')
+        plt.plot(train_hist, color='red', label='train')
+        plt.plot(test_hist2, color='green', label='test')
         
         plt.ylabel('Test_acc , Train_acc')
         plt.legend()
         plt.show()
 
         plt.figure()
-        plt.plot(loss_hist, color='red',label='train loss')
-        plt.plot(loss_hist2,color='green',label='test  loss')
+        plt.plot(loss_hist, color='red', label='train loss')
+        plt.plot(loss_hist2, color='green', label='test  loss')
         plt.ylabel('Loss')
         plt.legend()
         plt.show()
 
 def shallow_net_frequency(data_list):
 
-    [train_len, test_len ,x_train, y_train, x_test , y_test] = data_list
+    [train_len, test_len, x_train, y_train, x_test, y_test] = data_list
     
     #Define graph
     gf = tf.Graph()
@@ -276,25 +272,25 @@ def shallow_net_frequency(data_list):
         T  = tf.placeholder(tf.bool)
         LR = tf.placeholder(tf.float32)
 
-        H = tf.layers.conv2d(X, filters=40, kernel_size=(1,25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
+        H = tf.layers.conv2d(X, filters=40, kernel_size=(1, 25), strides=(1, 1), padding='valid', activation=None , kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 44 * 976 * 40
 
-        H = tf.layers.conv2d(H,filters=40, kernel_size=(44,1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
+        H = tf.layers.conv2d(H, filters=40, kernel_size=(44, 1), strides=(1, 1), padding='valid', activation=None, kernel_initializer=initK)
         H = tf.layers.batch_normalization(H, momentum=0.1, training=T) 
         # dim N * 1 * 976 *40
 
         H = tf.square(H)
-        H = tf.layers.average_pooling2d(H , pool_size=(1,75) , strides=(1,30), padding='valid')
+        H = tf.layers.average_pooling2d(H, pool_size=(1, 75) , strides=(1, 30), padding='valid')
         # dim N * 1 * 31 * 40
         
         H = tf.log(H)
         H = tf.layers.dropout(H, rate=0.6, training=T)
 
-        H = tf.layers.conv2d(H, filters=4, kernel_size=(1,31), padding='valid', activation=None , kernel_initializer=initK)   
+        H = tf.layers.conv2d(H, filters=4, kernel_size=(1, 31), padding='valid', activation=None, kernel_initializer=initK)   
         # dim (N)*1*1*4
 
-        Y_pred = tf.reshape(H,[-1,4], name='Y_pred')
+        Y_pred = tf.reshape(H,[-1, 4], name='Y_pred')
         # dim (N)*4
 
         #Loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=Y_pred, labels=Y))
@@ -329,7 +325,7 @@ def shallow_net_frequency(data_list):
                     print(batch_x.shape)
                     print(batch_y.shape) 
                     
-                    _ , loss_i =  se.run([Train_step,Loss] , feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
+                    _ , loss_i =  se.run([Train_step,Loss], feed_dict={X: batch_x, Y: batch_y, T: True, LR:lr})
 
                     print(loss_i)
 
@@ -340,10 +336,10 @@ def shallow_net_frequency(data_list):
                     batch_x_test = x_test[batch_id]
                     batch_y_test = y_test[batch_id]
                     
-                    loss_test = se.run(Loss,feed_dict={X: batch_x_test , Y: batch_y_test , T: False})
+                    loss_test = se.run(Loss,feed_dict={X: batch_x_test, Y: batch_y_test, T: False})
 
                     y_test_pred      = se.run(Y_pred, feed_dict={X: batch_x_test, T: False})
-                    Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(batch_y_test,1))
+                    Y_correct_test   = tf.equal(tf.argmax(y_test_pred,1), tf.argmax(batch_y_test, 1))
                     Y_correct_test   = tf.cast(Y_correct_test, tf.float32)
                     acc_tf_test      = tf.reduce_mean(Y_correct_test)             
                     acc_test2        = se.run(acc_tf_test)   
@@ -358,9 +354,9 @@ def shallow_net_frequency(data_list):
                     batch_x = x_train[batch_id]
                     batch_y = y_train[batch_id]
 
-                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x , Y: batch_y , T: False})
+                    loss_batch_train = se.run(Loss,feed_dict={X: batch_x, Y: batch_y, T: False})
                     Y_train_pred     = se.run(Y_pred, feed_dict={X: batch_x, Y: batch_y, T: False})
-                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred,1), tf.argmax(batch_y,1))
+                    Y_correct_train  = tf.equal(tf.argmax(Y_train_pred, 1), tf.argmax(batch_y, 1))
                     Y_correct_train  = tf.cast(Y_correct_train, tf.float32)
                     acc_tf_train     = tf.reduce_mean(Y_correct_train)             
                     acc_train        = se.run(acc_tf_train)
@@ -368,24 +364,24 @@ def shallow_net_frequency(data_list):
                     train_acc = train_acc + acc_train * batch_x.shape[0] / x_train.shape[0]
 
                 loss_hist.append(train_loss)
-                loss_hist2.append(test_loss)
+                loss_hist2.append(loss_test)
                 train_hist.append(train_acc)
-                test_hist2.append(test_acc)
+                test_hist2.append(acc_test2)
 
-                print('Epoch:', epoch, '| test: %.4f' % test_acc, '| train: %.4f' % train_acc,
-                      '| train Loss: %.4f' % train_loss, '| test Loss: %.4f' % test_loss)
+                print('Epoch:', epoch, '| test: %.4f' % acc_test2, '| train: %.4f' % train_acc,
+                      '| train Loss: %.4f' % train_loss, '| test Loss: %.4f' % loss_test)
 
         plt.figure()
-        plt.plot(train_hist,color='red',label='train')
-        plt.plot(test_hist2,color='green',label='test')
+        plt.plot(train_hist, color='red', label='train')
+        plt.plot(test_hist2, color='green', label='test')
         
         plt.ylabel('Test_acc , Train_acc')
         plt.legend()
         plt.show()
 
         plt.figure()
-        plt.plot(loss_hist, color='red',label='train loss')
-        plt.plot(loss_hist2,color='green',label='test  loss')
+        plt.plot(loss_hist, color='red', label='train loss')
+        plt.plot(loss_hist2, color='green', label='test  loss')
         plt.ylabel('Loss')
         plt.legend()
         plt.show()
