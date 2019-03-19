@@ -4,7 +4,8 @@ from load import load_data_no_EOG
 from load import load_data_with_fq_domain
 
 # Run the shallow net
-data = load_data_no_EOG(True, 8)
+#data = load_data_no_EOG(True, 8)
+data = load_data_no_EOG()
 conv_util.shallow_net(data)
 
 # Run the neural net deeper comparing to the previous one
