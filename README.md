@@ -1,4 +1,4 @@
-# CS239-Project
+# EE239-Project
 
 ## CNN Part
 
