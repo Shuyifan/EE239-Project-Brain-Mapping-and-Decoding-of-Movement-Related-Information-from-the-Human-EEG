@@ -1,14 +1,20 @@
-# EE239-Project
-
+# EE239 Project: Deep Learning for Brain Mapping and Decoding of Movement-Related Information from the Human EEG
+## Contruibutors
+Yifan Shu: evanshu@g.ucla.edu <br />
+Ruoyu Peng: jimmypry@g.ucla.edu <br/>
+Haiqi Xiao: haiqixiao@ucla.edu <br/>
+Yifeng Zhang: tjyifengzhang@outlook.com <br />
 ## CNN Part
 
 ### How to run
 ```
 python Conv_main.py
 ```
-To run different different model, uncomment the corresoponding part in the Conv_main.py.
+To run different different model, uncomment the corresoponding part in the conv_main.py.
 
-### Python Files for this Part
+For this project, we used the GPU version of the Tensorflow to boost the running speed. Our environment can be shown in detail in Environment.txt.
+
+### Python Files for the Part
 ##### Conv_main.py
 The main program for the code.
 ##### conv_util.py
@@ -20,10 +26,8 @@ The utility function for the convolutional network. Contains the following funct
 ##### load.py
 Contains the function to load the data. Includes the following function:
 * one_hot(Y): do the one-hot coding for the target.
-* load_data(): load the data (including EOG + EEG)
-* load_data_no_EOG(): load the data (without EOG channels)
-* load_data_with_fq_domain(): load the data and use DFT to extend from 22 channels to 44 channels, where 1 - 22 channels are original signals in the time domain, and 23 - 44 channels are the corresponding signals in the frequency domain.
+* load_data(): load the data. By feeding diffrerent parameter, we can load the data in different format, further details can be seen in the comment in the load.py.
 
 ## RNN Part
 ### How to run
-Just run the jupyter notebook, "RNN.ipynb". "RNN.ipynb" is the keras based implementation of the LSTM networks. It includes both simple RNN and stacked BRNN models and their experiments on data sets with different preprocessing method.
+Just run the jupyter notebook, "RNN.ipynb". "RNN.ipynb" is the Keras based implementation of the LSTM networks. It includes both simple RNN and stacked BRNN models and their experiments on data sets with different preprocessing method.
